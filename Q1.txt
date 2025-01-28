@@ -1,0 +1,3 @@
+VI) int j in the inner loop causes the conflict. It is a write-write issue, 
+  if two threads increment J simultaneously, the inner loop skips over elements.
+  Private makes a new instance of J for each inner loop and incrememnts it by the number of threads.
