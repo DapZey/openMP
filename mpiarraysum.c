@@ -4,24 +4,35 @@
 
 #include <stdio.h>      /* I/O stuff */
 #include <stdlib.h>     /* calloc, etc. */
+#include <mpi.h>
 
 void readArray(char * fileName, double ** a, int * n);
-long double sumArray(double * a, int numValues) ;
+long double sumArray(double * a, int numValues, int rank, int size) ;
 
 int main(int argc, char * argv[])
 {
     int  howMany;
     long double sum;
     double * a;
-
-
-    readArray("100k.txt", &a, &howMany);
+    long double globalSum;
+    double startTime, endTime;
+    readArray("100k.txt",&a,&howMany);
+    MPI_Init(&argc,&argv);
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank)
+    MPI_Comm_size(MPI_COMM_WORLD,&world_size);
+    startTime = MPI_Wtime();   
     sum = sumArray(a, howMany);
     printf("The sum of the values in the input file is %Lg\n",
             sum);
 
     free(a);
-
+    MPI_Reduce(&sum.&globalSum,1,MPI_LONG_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+    printf("final sum: %Lg\n", globalSum);
+    endTime = MPI_Wtime();
+    if (world_rank == 0)
+    printf("time is: %f", endTime-startTime);
+    MPI_Finalize();
     return 0;
 }
 
@@ -71,11 +82,11 @@ void readArray(char * fileName, double ** a, int * n) {
  * Return: the sum of the values in the array.
  */
 
-long double sumArray(double * a, int numValues) {
+long double sumArray(double * a, int numValues, int rank, int size) {
     int i;
     long double result = 0.0;
 
-    for (i = 0; i < numValues; ++i) {
+    for (i = rank; i < numValues; i+=size) {
         result += a[i];
     }
 
